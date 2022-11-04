@@ -1,2 +1,1 @@
-"# BettSystemeRoboter2022-23" 
-Das ist ein Test.
+This repository is a computer science project made in the university module 'Eingebette Systeme' at Hochschule Ruhr West. It is about an arduino robot controlled by a controller. The background is to create a project, that can be repeated by a school class to get students interested in computer science and working in the tech industry.
