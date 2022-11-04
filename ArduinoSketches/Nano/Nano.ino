@@ -18,7 +18,6 @@ signed char yValue;
 
 void setup()
 {
-  //Motorenoutputs definieren
   pinMode(GSM1, OUTPUT);    
   pinMode(GSM2, OUTPUT);
   pinMode(in1, OUTPUT);
@@ -28,8 +27,16 @@ void setup()
   //serieller Monitor wird gestartet, Baudrate auf 9600 festgelegt
   Serial.begin(9600);  
 }
+void loop()
+{
+  digitalWrite(in1, HIGH);  // Motor 1 beginnt zu rotieren
+  digitalWrite(in2, LOW);
 
-enum Rotation = {forwards, backwards, stopped};
+enum Rotation {
+  forwards, 
+  backwards, 
+  stopped};
+}
 
 void engine1(Rotation rot) {
   if(rot == forwards) {
@@ -88,7 +95,6 @@ void loop()
      engine1(Rotation.stopped);
      engine2(Rotation.stopped);
    }
-   analogWrite(GSM1, );
-   analogWrite(GSM2, );
-    
+   analogWrite(GSM1, 0);
+   analogWrite(GSM2, 0);
 }
