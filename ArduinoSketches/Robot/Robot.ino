@@ -11,10 +11,12 @@ const int in3 = 9;
 const int in4 = 10;
 
 // Bluetooth Daten
-char xSign;
-signed char xValue;
-char ySign;
-signed char yValue;
+int xValue;
+int yValue;
+
+//Test Daten
+int motor1;
+
 
 void setup()
 {
@@ -28,17 +30,46 @@ void setup()
   Serial.begin(9600);  
 }
 
-enum Rotation {
-  forwards, 
-  backwards, 
-  stopped
-};
 
-void engine1(Rotation rot) {
-  if(rot == forwards) {
+void loop()
+{
+  if(Serial.available()) //wenn Daten empfangen werden...      
+  {
+   
+   xValue=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
+   yValue=Serial.read();
+   
+   
+   if(yValue > 25) {//Fall 1: Motor 1 & 2 nach vorne
+     engine1(forwards);
+     engine2(forwards);
+   } else if(yValue < -25) {
+     //Fall 2: Motor 1 & 2 nach hinten
+     engine1(backwards):
+     engine2(backwards);
+   } else if(25 >= yValue >= -25 && xValue > 25) {
+     //Fall 3: Motor 1 dreht sich nach vorne, Motor 2 dreht sich nach hinten
+     engine1(forwards);
+     engine2(backwards);
+   } else if(25 >= yValue >= -25 && xValue < 25) {
+     //Fall 4: Motor 1 dreht sich nach hinten, Motor 2 dreht sich nach vorne
+     engine1(backwards);
+     engine2(forwards);
+   } else {
+     //Fall 5: Motor 1 & 2 sind aus
+     engine1(stopped);
+     engine2(stopped);
+   }
+   
+
+
+}
+
+void engine1(int rot) {
+  if(rot == 1) {
     digitalWrite(in1, HIGH);  // Motor 1 beginnt zu rotieren
     digitalWrite(in2, LOW);
-  } else if(rot == backwards) {
+  } else if(rot == -1) {
     digitalWrite(in1, LOW);  // Motor 1 beginnt rückwärts zu rotieren
     digitalWrite(in2, HIGH);
   } else {
@@ -47,49 +78,15 @@ void engine1(Rotation rot) {
   }
 }
 
-void engine2(Rotation rot) {
-  if(rot == forwards) {
+void engine2(int rot) {
+  if(rot == 1) {
     digitalWrite(in3, HIGH);  // Motor 2 beginnt zu rotieren
     digitalWrite(in4, LOW);
-  } else if(rot == backwards) {
+  } else if(rot == -1) {
     digitalWrite(in3, LOW);  // Motor 2 beginnt zu rückwärts rotieren
     digitalWrite(in4, HIGH);
   } else {
     digitalWrite(in3, LOW);  // Motor 2 stoppt
     digitalWrite(in4, LOW);
-  }
-}
-
-void loop()
-{
-  if(Serial.available()) //wenn Daten empfangen werden...      
-  {
-   xSign=Serial.read();     //0 für keine Bewegung, 1 für positive Zahlen (vorwärts fahren), -1 für negative Zahlen (rückwärts fahren)
-   xValue=Serial.read();    //Werte zwischen 0 und 255 für die Geschwindigkeit
-   ySign=Serial.read();
-   yValue=Serial.read();
-
-   if(ySign == 1) {//Fall 1: Motor 1 & 2 nach vorne
-     engine1(Rotation.forwards);
-     engine2(Rotation.forwards);
-   } else if(ySign == -1) {
-     //Fall 2: Motor 1 & 2 nach hinten
-     engine1(Rotation.backwards):
-     engine2(Rotation.backwards);
-   } else if(ySign == 0 && xSign == 1) {
-     //Fall 3: Motor 1 dreht sich nach vorne, Motor 2 dreht sich nach hinten
-     engine1(Rotation.forwards);
-     engine2(Rotation.backwards);
-   } else if(ySign == 0 && xSign == -1) {
-     //Fall 4: Motor 1 dreht sich nach hinten, Motor 2 dreht sich nach vorne
-     engine1(Rotation.backwards);
-     engine2(Rotation.forwards);
-   } else {
-     //Fall 5: Motor 1 & 2 sind aus
-     engine1(Rotation.stopped);
-     engine2(Rotation.stopped);
-   }
-   analogWrite(GSM1, 0);
-   analogWrite(GSM2, 0);
   }
 }
