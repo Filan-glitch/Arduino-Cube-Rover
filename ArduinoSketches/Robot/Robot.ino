@@ -1,14 +1,14 @@
 // Gleichstrommotor 1
 
-int GSM1 = 6;
-int in1 = 7;
-int in2 = 8;
+const int GSM1 = 6;
+const int in1 = 7;
+const int in2 = 8;
 
 // Gleichstrommotor 2
 
-int GSM2 = 11;
-int in3 = 9;
-int in4 = 10;
+const int GSM2 = 11;
+const int in3 = 9;
+const int in4 = 10;
 
 // Bluetooth Daten
 char xSign;
@@ -27,16 +27,12 @@ void setup()
   //serieller Monitor wird gestartet, Baudrate auf 9600 festgelegt
   Serial.begin(9600);  
 }
-void loop()
-{
-  digitalWrite(in1, HIGH);  // Motor 1 beginnt zu rotieren
-  digitalWrite(in2, LOW);
 
 enum Rotation {
   forwards, 
   backwards, 
-  stopped};
-}
+  stopped
+};
 
 void engine1(Rotation rot) {
   if(rot == forwards) {
@@ -64,12 +60,10 @@ void engine2(Rotation rot) {
   }
 }
 
-
-
 void loop()
 {
   if(Serial.available()) //wenn Daten empfangen werden...      
-{
+  {
    xSign=Serial.read();     //0 für keine Bewegung, 1 für positive Zahlen (vorwärts fahren), -1 für negative Zahlen (rückwärts fahren)
    xValue=Serial.read();    //Werte zwischen 0 und 255 für die Geschwindigkeit
    ySign=Serial.read();
@@ -97,4 +91,5 @@ void loop()
    }
    analogWrite(GSM1, 0);
    analogWrite(GSM2, 0);
+  }
 }
