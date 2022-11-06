@@ -1,6 +1,6 @@
-#include <dummy.h>
 #include <ADXL345.h>
 #include <Wire.h>
+#include <SoftwareSerial.h>
 
 //Joystick
 
@@ -14,7 +14,24 @@ int x,y,z;
 const int IN2 = 33;
 ADXL345 adxl;
 
+//Motorberechnungen
 
+float Speed;
+float Fix = 519;
+float haelfte = 512;
+float alpha;
+float motR = 0;
+float motL = 0;
+const int xAchsePin = 3;
+const int yAchsePin = 2;
+int xAchse;
+int yAchse;
+int marche = 8;
+
+int motRInt;
+int motLInt; 
+
+//Setup-Funktion
 void setup() {
   pinMode(SW, INPUT);
   Serial.begin(9600);
@@ -66,17 +83,73 @@ void setup() {
   adxl.setInterrupt( ADXL345_INT_INACTIVITY_BIT, 1);
 }
 
+//Loop-Funktion
 void loop() {
-  Serial.print("X=");
-  Serial.println(analogRead(VRx));
-  Serial.print("Y=");
-  Serial.println(analogRead(VRy));
   adxl.readXYZ(&x, &y, &z);
-  Serial.print("values of X , Y , Z: ");
-  Serial.print(x);
-  Serial.print(" , ");
-  Serial.print(y);
-  Serial.print(" , ");
-  Serial.println(z);
   delay(1000);
+}
+
+//Funktion zur Berechnung der Joystick-Inputdaten und Schreiben der Daten in die Bluetooth Kommunikation
+void speed() {
+  xAchse = analogRead(xAchsePin);
+  yAchse = analogRead(yAchsePin);
+  Speed = sqrt(sq(xAchse-haelfte)+sq(yAchse-haelfte));
+  if (yAchsePos()) {
+    if (xAchsePos()) {
+      motR = -1;
+      alpha = degrees(asin(map(yAchse, haelfte, 1023, 0, 1)));
+      motL = map(alpha, 0, 90, 1, -1);
+    }
+    else if(xAchseNeg()) {
+      motL = -1;
+      alpha = degrees(asin(map(yAchse, haelfte, 1023, 0, 1)));
+      motR = map(alpha, 0, 90, 1, -1);
+    }
+    else {
+      motR = -1;
+      motL = -1;
+      Speed = yAchse-haelfte;
+    }
+  }
+  else if (yAchseNeg()) {
+    if (xAchsePos()) {
+      motL = 1;
+      alpha = degrees(asin(map(yAchse, haelfte, 0, 0, 1)));
+      motR = map(alpha, 0, 90, -1, 1);
+    }
+    else if (xAchseNeg()) {
+      motR = 1;
+      alpha = degrees(asin(map(yAchse, haelfte, 0, 0, 1)));
+      motL = map(alpha, 0, 90, -1, 1);
+    }
+    else {
+      motR = 1;
+      motL = 1;
+      Speed = sqrt(sq(yAchse-haelfte));
+    }
+  }
+  else {
+    if (xAchsePos()) {
+      motL = 1;
+      motR = -1;
+      Speed = xAchse-haelfte;
+    }
+    else if (xAchseNeg()) {
+      motL = -1;
+      motR = 1;
+      Speed = sqrt(sq(xAchse-haelfte));
+    }
+    else {
+      motL = 0;
+      motR = 0;
+      Speed = 0;
+    }
+  }
+  if (Speed > 512) Speed = 512;
+  motR *= Speed;
+  motL *= Speed;
+  motRInt = int(map(motR, -512, 512, -255, 255));
+  motLInt = int(map(motL, -512, 512, -255, 255));
+  
+  
 }

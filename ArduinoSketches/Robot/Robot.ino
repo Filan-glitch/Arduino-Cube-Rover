@@ -1,3 +1,5 @@
+#include <SoftwareSerial.h>
+
 // Gleichstrommotor 1
 
 const int GSM1 = 6;
@@ -11,12 +13,9 @@ const int in3 = 9;
 const int in4 = 10;
 
 // Bluetooth Daten
-int xValue;
-int yValue;
-
-//Test Daten
-int motor1;
-
+SoftwareSerial BTSerial(5, 4); //(RX,TX)
+int motL;
+int motR;
 
 void setup()
 {
@@ -27,42 +26,36 @@ void setup()
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
   //serieller Monitor wird gestartet, Baudrate auf 9600 festgelegt
-  Serial.begin(9600);  
+  Serial.begin(38400);
+  BTSerial.begin(38400);  
 }
 
 
 void loop()
 {
-  if(Serial.available()) //wenn Daten empfangen werden...      
+  if(BTSerial.available()) //wenn Daten empfangen werden...      
   {
    
-   xValue=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
-   yValue=Serial.read();
+   motL=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
+   motR=BTSerial.read();
    
    
-   if(yValue > 25) {//Fall 1: Motor 1 & 2 nach vorne
-     engine1(forwards);
-     engine2(forwards);
-   } else if(yValue < -25) {
-     //Fall 2: Motor 1 & 2 nach hinten
-     engine1(backwards):
-     engine2(backwards);
-   } else if(25 >= yValue >= -25 && xValue > 25) {
-     //Fall 3: Motor 1 dreht sich nach vorne, Motor 2 dreht sich nach hinten
-     engine1(forwards);
-     engine2(backwards);
-   } else if(25 >= yValue >= -25 && xValue < 25) {
-     //Fall 4: Motor 1 dreht sich nach hinten, Motor 2 dreht sich nach vorne
-     engine1(backwards);
-     engine2(forwards);
+   if(motL > 35) {
+    engine1(1);
+   } else if(motL < -35) {
+    engine1(-1);
    } else {
-     //Fall 5: Motor 1 & 2 sind aus
-     engine1(stopped);
-     engine2(stopped);
+    engine1(0);
    }
-   
-
-
+   if(motR > 35) {
+    engine2(1);
+   } else if(motR < -35) {
+    engine2(-1);
+   } else {
+    engine2(0);
+   }
+   analogWrite(GSM1, sqrt(sq(motL)));
+   analogWrite(GSM2, sqrt(sq(motR)));
 }
 
 void engine1(int rot) {
