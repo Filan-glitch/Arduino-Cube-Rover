@@ -1,6 +1,17 @@
 #include <ADXL345.h>
 #include <Wire.h>
-#include <SoftwareSerial.h>
+
+//Generelles
+int x,y,z;
+int motRInt;
+int motLInt; 
+enum controlStyle {JOYSTICK, TILT_SENSOR};
+controlStyle currentStyle = JOYSTICK;
+
+//ControllerIO
+const int ledPin;
+const int buttonPin;
+bool buttonPressed
 
 //Joystick
 
@@ -9,31 +20,14 @@ const int VRx = 35;
 const int VRy = 34;
 
 //Neigungssensor
-
-int x,y,z;
 const int IN2 = 33;
 ADXL345 adxl;
-
-//Motorberechnungen
-
-float Speed;
-float Fix = 519;
-float haelfte = 512;
-float alpha;
-float motR = 0;
-float motL = 0;
-const int xAchsePin = 3;
-const int yAchsePin = 2;
-int xAchse;
-int yAchse;
-int marche = 8;
-
-int motRInt;
-int motLInt; 
 
 //Setup-Funktion
 void setup() {
   pinMode(SW, INPUT);
+  pinMode(buttonPin, INPUT);
+  pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
   adxl.powerOn();
 
@@ -85,14 +79,38 @@ void setup() {
 
 //Loop-Funktion
 void loop() {
-  adxl.readXYZ(&x, &y, &z);
-  delay(1000);
+  if(buttonPressed && !digitalRead(buttonPin) {
+    if(currentStyle == JOYSTICK) {
+      currentStyle == TILT_SENSOR;
+    } else {
+      currentStyle == JOYSTICK;
+    }
+    buttonPressed = false;
+  }
+ 
+  buttonPressed = digitalRead(buttonPin);
+  
+  if(currentStyle = JOYSTICK) {
+    xAchse = analogRead(xAchsePin);
+    yAchse = analogRead(yAchsePin);
+  } else {
+    adxl.readXYZ(&x, &y, &z);
+  }
+  calculateSpeed(x,y);
 }
 
 //Funktion zur Berechnung der Joystick-Inputdaten und Schreiben der Daten in die Bluetooth Kommunikation
-void speed() {
-  xAchse = analogRead(xAchsePin);
-  yAchse = analogRead(yAchsePin);
+void calculateSpeed(int xValue, int yValue) {
+  float Speed;
+  float Fix = 519;
+  float haelfte = 512;
+  float alpha;
+  float motR = 0;
+  float motL = 0;
+  int xAchse;
+  int yAchse;
+  int marche = 8;
+
   Speed = sqrt(sq(xAchse-haelfte)+sq(yAchse-haelfte));
   if (yAchsePos()) {
     if (xAchsePos()) {
@@ -148,8 +166,11 @@ void speed() {
   if (Speed > 512) Speed = 512;
   motR *= Speed;
   motL *= Speed;
-  motRInt = int(map(motR, -512, 512, -255, 255));
   motLInt = int(map(motL, -512, 512, -255, 255));
+  motRInt = int(map(motR, -512, 512, -255, 255));
+  Serial.write(motLInt);
+  Serial.write(motRInt);
+  
   
   
 }

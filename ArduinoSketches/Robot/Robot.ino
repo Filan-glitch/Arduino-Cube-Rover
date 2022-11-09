@@ -1,5 +1,3 @@
-#include <SoftwareSerial.h>
-
 // Gleichstrommotor 1
 
 const int GSM1 = 6;
@@ -13,7 +11,6 @@ const int in3 = 9;
 const int in4 = 10;
 
 // Bluetooth Daten
-SoftwareSerial BTSerial(5, 4); //(RX,TX)
 int motL;
 int motR;
 
@@ -27,7 +24,6 @@ void setup()
   pinMode(in4, OUTPUT);
   //serieller Monitor wird gestartet, Baudrate auf 9600 festgelegt
   Serial.begin(38400);
-  BTSerial.begin(38400);  
 }
 
 
@@ -37,7 +33,7 @@ void loop()
   {
    
    motL=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
-   motR=BTSerial.read();
+   motR=Serial.read();
    
    
    if(motL > 35) {
