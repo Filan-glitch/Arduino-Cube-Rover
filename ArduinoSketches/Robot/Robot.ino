@@ -26,34 +26,6 @@ void setup()
   Serial.begin(38400);
 }
 
-
-void loop()
-{
-  if(BTSerial.available()) //wenn Daten empfangen werden...      
-  {
-   
-   motL=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
-   motR=Serial.read();
-   
-   
-   if(motL > 35) {
-    engine1(1);
-   } else if(motL < -35) {
-    engine1(-1);
-   } else {
-    engine1(0);
-   }
-   if(motR > 35) {
-    engine2(1);
-   } else if(motR < -35) {
-    engine2(-1);
-   } else {
-    engine2(0);
-   }
-   analogWrite(GSM1, sqrt(sq(motL)));
-   analogWrite(GSM2, sqrt(sq(motR)));
-}
-
 void engine1(int rot) {
   if(rot == 1) {
     digitalWrite(in1, HIGH);  // Motor 1 beginnt zu rotieren
@@ -77,5 +49,33 @@ void engine2(int rot) {
   } else {
     digitalWrite(in3, LOW);  // Motor 2 stoppt
     digitalWrite(in4, LOW);
+  }
+}
+
+void loop()
+{
+  if(Serial.available()) //wenn Daten empfangen werden...      
+  {
+   
+   motL=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
+   motR=Serial.read();
+   
+   
+   if(motL > 35) {
+    engine1(1);
+   } else if(motL < -35) {
+    engine1(-1);
+   } else {
+    engine1(0);
+   }
+   if(motR > 35) {
+    engine2(1);
+   } else if(motR < -35) {
+    engine2(-1);
+   } else {
+    engine2(0);
+   }
+   analogWrite(GSM1, sqrt(sq(motL)));
+   analogWrite(GSM2, sqrt(sq(motR)));
   }
 }

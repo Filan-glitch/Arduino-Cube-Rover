@@ -8,10 +8,21 @@ int motLInt;
 enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
 
+//Speed Calculation
+int xAchse;
+int yAchse;
+float Speed;
+float Fix = 519;
+float haelfte = 512;
+float alpha;
+float motR = 0;
+float motL = 0;
+int marche = 8;
+
 //ControllerIO
 const int ledPin;
 const int buttonPin;
-bool buttonPressed
+bool buttonPressed;
 
 //Joystick
 
@@ -79,7 +90,7 @@ void setup() {
 
 //Loop-Funktion
 void loop() {
-  if(buttonPressed && !digitalRead(buttonPin) {
+  if(buttonPressed && !digitalRead(buttonPin)) {
     if(currentStyle == JOYSTICK) {
       currentStyle == TILT_SENSOR;
     } else {
@@ -91,26 +102,36 @@ void loop() {
   buttonPressed = digitalRead(buttonPin);
   
   if(currentStyle = JOYSTICK) {
-    xAchse = analogRead(xAchsePin);
-    yAchse = analogRead(yAchsePin);
+    xAchse = analogRead(VRx);
+    yAchse = analogRead(VRy);
   } else {
     adxl.readXYZ(&x, &y, &z);
   }
   calculateSpeed(x,y);
 }
 
+boolean yAchsePos() {
+  if (yAchse > Fix+marche) return true;
+  else return false;
+}
+
+boolean yAchseNeg() {
+  if (yAchse < Fix-marche) return true;
+  else return false;
+}
+
+boolean xAchsePos() {
+  if (xAchse > Fix+marche) return true;
+  else return false;
+}
+
+boolean xAchseNeg() {
+  if (xAchse < Fix-marche) return true;
+  else return false;
+}
+
 //Funktion zur Berechnung der Joystick-Inputdaten und Schreiben der Daten in die Bluetooth Kommunikation
 void calculateSpeed(int xValue, int yValue) {
-  float Speed;
-  float Fix = 519;
-  float haelfte = 512;
-  float alpha;
-  float motR = 0;
-  float motL = 0;
-  int xAchse;
-  int yAchse;
-  int marche = 8;
-
   Speed = sqrt(sq(xAchse-haelfte)+sq(yAchse-haelfte));
   if (yAchsePos()) {
     if (xAchsePos()) {
@@ -170,7 +191,5 @@ void calculateSpeed(int xValue, int yValue) {
   motRInt = int(map(motR, -512, 512, -255, 255));
   Serial.write(motLInt);
   Serial.write(motRInt);
-  
-  
   
 }
