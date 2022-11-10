@@ -20,26 +20,25 @@ float motL = 0;
 int marche = 8;
 
 //ControllerIO
-const int ledPin;
-const int buttonPin;
+//const int ledPin;
+const int buttonPin = 11;
 bool buttonPressed;
 
 //Joystick
 
-const int SW = 32;
-const int VRx = 35;
-const int VRy = 34;
+const int SW = 2;
+const int VRx = 7;
+const int VRy = 6;
 
 //Neigungssensor
-const int IN2 = 33;
 ADXL345 adxl;
 
 //Setup-Funktion
 void setup() {
   pinMode(SW, INPUT);
   pinMode(buttonPin, INPUT);
-  pinMode(ledPin, OUTPUT);
-  Serial.begin(9600);
+  //pinMode(ledPin, OUTPUT);
+  Serial.begin(38400);
   adxl.powerOn();
 
   //set activity/ inactivity thresholds (0-255)
@@ -101,13 +100,29 @@ void loop() {
  
   buttonPressed = digitalRead(buttonPin);
   
-  if(currentStyle = JOYSTICK) {
+  if(currentStyle == JOYSTICK) {
     xAchse = analogRead(VRx);
     yAchse = analogRead(VRy);
+    Serial.print("xAchse = ");
+    Serial.println(xAchse);
+    Serial.print("MyAchse = ");
+    Serial.println(yAchse);
+    calculateSpeed(xAchse, yAchse);
   } else {
     adxl.readXYZ(&x, &y, &z);
+    yAchse = analogRead(VRy);
+    Serial.print("x = ");
+    Serial.println(x);
+    Serial.print("y = ");
+    Serial.println(y);
+    Serial.print("z = ");
+    Serial.println(z);
+    calculateSpeed(y,yAchse);
+    Serial.println(currentStyle);
+    Serial.println(buttonPressed);
   }
-  calculateSpeed(x,y);
+  delay(500);
+  
 }
 
 boolean yAchsePos() {
@@ -189,7 +204,9 @@ void calculateSpeed(int xValue, int yValue) {
   motL *= Speed;
   motLInt = int(map(motL, -512, 512, -255, 255));
   motRInt = int(map(motR, -512, 512, -255, 255));
-  Serial.write(motLInt);
-  Serial.write(motRInt);
+  Serial.print("MotL = ");
+  Serial.println(motLInt);
+  Serial.print("MotR = ");
+  Serial.println(motRInt);
   
 }
