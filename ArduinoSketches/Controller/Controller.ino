@@ -1,12 +1,14 @@
 #include <ADXL345.h>
 #include <Wire.h>
+#include <SoftwareSerial.h>
 
 //Generelles
-int x,y,z;
+int junk;
 int motRInt;
 int motLInt; 
 enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
+BTSerial = SoftwareSerial(4,5); //Korrekte Pins müssen noch aktualisiert werden
 
 //Speed Calculation
 int xAchse;
@@ -38,6 +40,7 @@ void setup() {
   pinMode(SW, INPUT);
   pinMode(buttonPin, INPUT);
   //pinMode(ledPin, OUTPUT);
+  BTSerial.begin(38400);
   Serial.begin(38400);
   adxl.powerOn();
 
@@ -103,24 +106,18 @@ void loop() {
   if(currentStyle == JOYSTICK) {
     xAchse = analogRead(VRx);
     yAchse = analogRead(VRy);
-    Serial.print("xAchse = ");
-    Serial.println(xAchse);
-    Serial.print("MyAchse = ");
-    Serial.println(yAchse);
     calculateSpeed(xAchse, yAchse);
   } else {
-    adxl.readXYZ(&x, &y, &z);
+    adxl.readXYZ(&junk, &xAchse, &junk);
     yAchse = analogRead(VRy);
-    Serial.print("x = ");
-    Serial.println(x);
-    Serial.print("y = ");
-    Serial.println(y);
-    Serial.print("z = ");
-    Serial.println(z);
-    calculateSpeed(y,yAchse);
-    Serial.println(currentStyle);
-    Serial.println(buttonPressed);
+    calculateSpeed(xAchse,yAchse);
   }
+  Serial.print("Current Style = ");
+  Serial.println(currentStyle);
+  Serial.print("xAchse = ");
+  Serial.println(xAchse);
+  Serial.print("yAchse = ");
+  Serial.println(yAchse);
   delay(500);
   
 }
@@ -204,9 +201,10 @@ void calculateSpeed(int xValue, int yValue) {
   motL *= Speed;
   motLInt = int(map(motL, -512, 512, -255, 255));
   motRInt = int(map(motR, -512, 512, -255, 255));
-  Serial.print("MotL = ");
+  BTSerial.write(motLInt);
+  BTSerial.write(motRInt);
+  Serial.print("motLInt = ");
   Serial.println(motLInt);
-  Serial.print("MotR = ");
+  Serial.print("motRInt = ");
   Serial.println(motRInt);
-  
 }

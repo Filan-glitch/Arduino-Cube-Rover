@@ -13,6 +13,7 @@ const int in4 = 10;
 // Bluetooth Daten
 int motL;
 int motR;
+BTSerial SoftwareSerial(4,5); //Korrekte Anschlüsse müssen noch aktualisiert werden
 
 void setup()
 {
@@ -22,7 +23,7 @@ void setup()
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
-  //serieller Monitor wird gestartet, Baudrate auf 9600 festgelegt
+  BTSerial.begin(38400);
   Serial.begin(38400);
 }
 
@@ -54,11 +55,15 @@ void engine2(int rot) {
 
 void loop()
 {
-  if(Serial.available()) //wenn Daten empfangen werden...      
+  if(BTSerial.available()) //wenn Daten empfangen werden...      
   {
    
-   motL=Serial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
-   motR=Serial.read();
+   motL=BTSerial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
+   motR=BTSerial.read();
+   Serial.print("motL = ");
+   Serial.println(motL);
+   Serial.print("motR = ");
+   Serial.println(motR);
    
    
    if(motL > 35) {
