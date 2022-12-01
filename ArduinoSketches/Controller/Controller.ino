@@ -8,7 +8,11 @@ int motRInt;
 int motLInt; 
 enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
-BTSerial = SoftwareSerial(4,5); //Korrekte Pins müssen noch aktualisiert werden
+
+//Bluetooth Kommunikation
+SoftwareSerial btSerial(4,5);
+bool BTconnected;
+const byte BTpin = 3;
 
 //Speed Calculation
 int xAchse;
@@ -40,7 +44,7 @@ void setup() {
   pinMode(SW, INPUT);
   pinMode(buttonPin, INPUT);
   //pinMode(ledPin, OUTPUT);
-  BTSerial.begin(38400);
+  btSerial.begin(38400);
   Serial.begin(38400);
   adxl.powerOn();
 
@@ -106,11 +110,21 @@ void loop() {
   if(currentStyle == JOYSTICK) {
     xAchse = analogRead(VRx);
     yAchse = analogRead(VRy);
-    calculateSpeed(xAchse, yAchse);
+
+    calculateSpeed(VRx, VRy);
+
+    if(connectionCheck()){
+      bluetoothTransmission();
+    }
   } else {
-    adxl.readXYZ(&junk, &xAchse, &junk);
+    adxl.readXYZ(&junk, &VRx, &junk);
     yAchse = analogRead(VRy);
-    calculateSpeed(xAchse,yAchse);
+
+    calculateSpeed(VRx,VRy);
+    
+    if(connectionCheck()){
+      bluetoothTransmission();
+    }
   }
   Serial.print("Current Style = ");
   Serial.println(currentStyle);
@@ -201,10 +215,30 @@ void calculateSpeed(int xValue, int yValue) {
   motL *= Speed;
   motLInt = int(map(motL, -512, 512, -255, 255));
   motRInt = int(map(motR, -512, 512, -255, 255));
-  BTSerial.write(motLInt);
-  BTSerial.write(motRInt);
+
   Serial.print("motLInt = ");
   Serial.println(motLInt);
   Serial.print("motRInt = ");
   Serial.println(motRInt);
+}
+
+bool connectionCheck(){
+  while(!BTconnected)
+    {
+      Serial.print("Controller is looking for the robot");
+      if (digitalRead(BTpin)==HIGH){
+        BTconnected = true;
+        Serial.print("Bluetooth connected");
+        return true;
+      }   
+    }
+  if(digitalRead(BTpin)==LOW){
+    BTconnected = false;
+  }
+  return false;
+}
+
+void bluetoothTransmission(){
+  btSerial.write(motLInt);
+  btSerial.write(motRInt);
 }

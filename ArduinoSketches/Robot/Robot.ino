@@ -1,3 +1,5 @@
+#include <SoftwareSerial.h>
+
 // Gleichstrommotor 1
 
 const int GSM1 = 6;
@@ -13,7 +15,10 @@ const int in4 = 10;
 // Bluetooth Daten
 int motL;
 int motR;
-BTSerial SoftwareSerial(4,5); //Korrekte Anschlüsse müssen noch aktualisiert werden
+
+SoftwareSerial btSerial(4,5);
+bool BTconnected;
+const byte BTpin = 3;
 
 void setup()
 {
@@ -23,7 +28,7 @@ void setup()
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
-  BTSerial.begin(38400);
+  btSerial.begin(38400);
   Serial.begin(38400);
 }
 
@@ -55,11 +60,11 @@ void engine2(int rot) {
 
 void loop()
 {
-  if(BTSerial.available()) //wenn Daten empfangen werden...      
+  if(connectionCheck() && btSerial.available()) //wenn Daten empfangen werden...      
   {
    
-   motL=BTSerial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
-   motR=BTSerial.read();
+   motL=btSerial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
+   motR=btSerial.read();
    Serial.print("motL = ");
    Serial.println(motL);
    Serial.print("motR = ");
@@ -84,3 +89,20 @@ void loop()
    analogWrite(GSM2, sqrt(sq(motR)));
   }
 }
+
+bool connectionCheck(){
+  while(!BTconnected)
+    {
+      Serial.print("Controller is looking for the robot");
+      if (digitalRead(BTpin)==HIGH){
+        BTconnected = true;
+        Serial.print("Bluetooth connected");
+        return true;
+      }   
+    }
+  if(digitalRead(BTpin)==LOW){
+    BTconnected = false;
+  }
+  return false;
+}
+
