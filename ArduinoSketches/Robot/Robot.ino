@@ -1,4 +1,5 @@
 #include <SoftwareSerial.h>
+#include <string.h>
 
 // Gleichstrommotor 1
 
@@ -13,8 +14,11 @@ const int in3 = 9;
 const int in4 = 10;
 
 // Bluetooth Daten
+
 int motL;
 int motR;
+uint8_t buf[4];
+
 
 SoftwareSerial btSerial(4,5);
 bool BTconnected;
@@ -62,13 +66,28 @@ void loop()
 {
   if(connectionCheck() && btSerial.available()) //wenn Daten empfangen werden...      
   {
-   
-   motL=btSerial.read();    //Werte zwischen -255 und 255 für die Geschwindigkeit
-   motR=btSerial.read();
-   Serial.print("motL = ");
-   Serial.println(motL);
-   Serial.print("motR = ");
-   Serial.println(motR);
+       //Werte zwischen -255 und 255 für die Geschwindigkeit
+   btSerial.readBytes(buf, 4);
+   motL = buf[1];
+   motR = buf[3];
+   if(buf[0]) {
+     motL = -motL;
+   }
+   if(buf[2]) {
+     motR = -motR;
+   }
+   //Serial.print("motL = ");
+   //Serial.println(motL);
+   //Serial.print("motR = ");
+   //Serial.println(motR);
+   Serial.print(buf[0]);
+   Serial.print(",");
+   Serial.print(buf[1]);
+   Serial.print(",");
+   Serial.print(buf[2]);
+   Serial.print(",");
+   Serial.println(buf[3]);
+   Serial.println();
    
    
    if(motL > 35) {
@@ -93,16 +112,18 @@ void loop()
 bool connectionCheck(){
   while(!BTconnected)
     {
-      Serial.print("Controller is looking for the robot");
+      Serial.print("Robot is looking for the controller\n");
       if (digitalRead(BTpin)==HIGH){
         BTconnected = true;
-        Serial.print("Bluetooth connected");
+        Serial.print("Bluetooth connected\n");
         return true;
-      }   
+      } else {
+        return false; 
+      }
     }
   if(digitalRead(BTpin)==LOW){
     BTconnected = false;
+    return false;
   }
-  return false;
+  return true;
 }
-
