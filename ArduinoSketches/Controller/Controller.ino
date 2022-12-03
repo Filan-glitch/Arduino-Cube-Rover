@@ -230,10 +230,28 @@ bool connectionCheck(){
 }
 
 void bluetoothTransmission(){
-  buf[0] = motLInt < 0 ? 1 : 0;
-  buf[1] = motLInt < 0 ? static_cast<uint8_t>(-motLInt) : static_cast<uint8_t>(motLInt);
-  buf[2] = motRInt < 0 ? 1 : 0;
-  buf[3] = motRInt < 0 ? static_cast<uint8_t>(-motRInt) : static_cast<uint8_t>(motRInt);
+  if(motLInt < 35) {
+    buf[0] = -1;
+    buf[2] = static_cast<uint8_t>(-motLInt);
+  } else if (motLInt > 35) {
+    buf[0] = 1;
+    buf[2] = static_cast<uint8_t>(motLInt);
+  } else {
+    buf[0] = 0;
+    buf[2] = 0;
+  }
+
+  if(motRInt < 35) {
+    buf[1] = -1;
+    buf[3] = static_cast<uint8_t>(-motRInt);
+  } else if(motRInt > 35) {
+    buf[1] = 1;
+    buf[3] = static_cast<uint8_t>(motRInt);
+  } else {
+    buf[1] = 0;
+    buf[3] = 0;
+  }
+
   btSerial.write(buf, 4);
 }
 
@@ -252,13 +270,5 @@ void debug() {
   Serial.println(motLInt);
   Serial.print("motRInt = ");
   Serial.println(motRInt);
-  Serial.print("sqrt(sq(motLInt)) = ");
-  Serial.println(sqrt(sq(motLInt)));
-  Serial.print("sqrt(sq(motRInt)) = ");
-  Serial.println(sqrt(sq(motRInt)));
-  Serial.print("static cast: sqrt(sq(motLInt)) = ");
-  Serial.println(static_cast<uint8_t>(sqrt(sq(motLInt))));
-  Serial.print("static cast: sqrt(sq(motRInt)) = ");
-  Serial.println(static_cast<uint8_t>(sqrt(sq(motRInt))));
   Serial.println();
 }
