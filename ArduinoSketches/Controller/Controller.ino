@@ -7,6 +7,7 @@ int junk;
 int motRInt;
 int motLInt;
 uint8_t buf[4];
+unsigned long previousMillis = 0;
 
 enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
@@ -95,53 +96,41 @@ void setup() {
 }
 
 //Loop-Funktion
-void loop() {
-  if(buttonPressed && !digitalRead(SW)) {
+void loop() {  
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= 500) {
+    buttonSwitch();
     if(currentStyle == JOYSTICK) {
-      currentStyle == TILT_SENSOR;
+      xAchse = analogRead(VRx);
+      yAchse = analogRead(VRy);
     } else {
-      currentStyle == JOYSTICK;
+      adxl.readXYZ(&junk, &VRx, &junk);
+      yAchse = analogRead(VRy);
     }
-    buttonPressed = false;
-  }
- 
-  buttonPressed = digitalRead(SW);
-  
-  if(currentStyle == JOYSTICK) {
-    xAchse = analogRead(VRx);
-    yAchse = analogRead(VRy);
-
-    calculateSpeed(VRx, VRy);
-  } else {
-    adxl.readXYZ(&junk, &VRx, &junk);
-    yAchse = analogRead(VRy);
-
-    calculateSpeed(VRx,VRy);
-  }
-  if(connectionCheck()){
+    if(connectionCheck()){
+      calculateSpeed(VRx,VRy);
       bluetoothTransmission();
       debug();
     }
-  delay(500);
-  
+  }
 }
 
-boolean yAchsePos() {
+bool yAchsePos() {
   if (yAchse > Fix+marche) return true;
   else return false;
 }
 
-boolean yAchseNeg() {
+bool yAchseNeg() {
   if (yAchse < Fix-marche) return true;
   else return false;
 }
 
-boolean xAchsePos() {
+bool xAchsePos() {
   if (xAchse > Fix+marche) return true;
   else return false;
 }
 
-boolean xAchseNeg() {
+bool xAchseNeg() {
   if (xAchse < Fix-marche) return true;
   else return false;
 }
@@ -231,38 +220,51 @@ bool connectionCheck(){
 
 void bluetoothTransmission(){
   if(motLInt < 35) {
-    buf[0] = -1;
-    buf[2] = static_cast<uint8_t>(-motLInt);
-  } else if (motLInt > 35) {
-    buf[0] = 1;
-    buf[2] = static_cast<uint8_t>(motLInt);
-  } else {
     buf[0] = 0;
-    buf[2] = 0;
+    buf[1] = static_cast<uint8_t>(-motLInt);
+  } else if (motLInt > 35) {
+    buf[0] = 2;
+    buf[1] = static_cast<uint8_t>(motLInt);
+  } else {
+    buf[0] = 1;
+    buf[1] = 0;
   }
 
   if(motRInt < 35) {
-    buf[1] = -1;
+    buf[2] = 0;
     buf[3] = static_cast<uint8_t>(-motRInt);
   } else if(motRInt > 35) {
-    buf[1] = 1;
+    buf[2] = 2;
     buf[3] = static_cast<uint8_t>(motRInt);
   } else {
-    buf[1] = 0;
+    buf[2] = 1;
     buf[3] = 0;
   }
 
   btSerial.write(buf, 4);
 }
 
+void buttonSwitch() {
+  if(buttonPressed && !digitalRead(SW)) {
+    if(currentStyle == JOYSTICK) {
+      currentStyle == TILT_SENSOR;
+    } else {
+      currentStyle == JOYSTICK;
+    }
+    buttonPressed = false;
+  }
+ 
+  buttonPressed = digitalRead(SW);
+}
+
 void debug() {
   Serial.print("Current Style = ");
   Serial.println(currentStyle);
-  Serial.print(buf[0]);
+  Serial.print(buf[0]-1);
   Serial.print(",");
   Serial.print(buf[1]);
   Serial.print(",");
-  Serial.print(buf[2]);
+  Serial.print(buf[2]-1);
   Serial.print(",");
   Serial.println(buf[3]);
   Serial.println();

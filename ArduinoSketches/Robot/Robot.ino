@@ -46,8 +46,8 @@ void loop()
    motL = buf[1];
    motR = buf[3];
 
-   engine1(buf[0]);
-   engine2(buf[2]);
+   engine1(buf[0]-1);
+   engine2(buf[2]-1);
 
    analogWrite(GSM1, motL);
    analogWrite(GSM2, motR);
@@ -106,11 +106,11 @@ void debug() {
   Serial.println(motL);
   Serial.print("motR = ");
   Serial.println(motR);
-  Serial.print(buf[0]);
+  Serial.print(buf[0]-1);
   Serial.print(",");
   Serial.print(buf[1]);
   Serial.print(",");
-  Serial.print(buf[2]);
+  Serial.print(buf[2]-1);
   Serial.print(",");
   Serial.println(buf[3]);
   Serial.println();
