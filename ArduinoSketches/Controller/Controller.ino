@@ -5,7 +5,10 @@
 //Generelles
 int junk;
 int motRInt;
-int motLInt; 
+int motLInt;
+uint8_t buf[4];
+unsigned long previousMillis = 0;
+
 enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
 
@@ -27,7 +30,6 @@ int marche = 8;
 
 //ControllerIO
 //const int ledPin;
-const int buttonPin = 11;
 bool buttonPressed;
 
 //Joystick
@@ -42,7 +44,6 @@ ADXL345 adxl;
 //Setup-Funktion
 void setup() {
   pinMode(SW, INPUT);
-  pinMode(buttonPin, INPUT);
   //pinMode(ledPin, OUTPUT);
   btSerial.begin(38400);
   Serial.begin(38400);
@@ -95,13 +96,23 @@ void setup() {
 }
 
 //Loop-Funktion
+<<<<<<< HEAD
 void loop() {
   if(buttonPressed && !digitalRead(SW)) {
+=======
+void loop() {  
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= 500) {
+    buttonSwitch();
+>>>>>>> 00d5dd073167675729293ea00b27833d40cea94b
     if(currentStyle == JOYSTICK) {
-      currentStyle == TILT_SENSOR;
+      xAchse = analogRead(VRx);
+      yAchse = analogRead(VRy);
     } else {
-      currentStyle == JOYSTICK;
+      adxl.readXYZ(&junk, &VRx, &junk);
+      yAchse = analogRead(VRy);
     }
+<<<<<<< HEAD
     buttonPressed = false;
   }
  
@@ -122,10 +133,15 @@ void loop() {
 
     calculateSpeed(VRx,VRy);
     
+=======
+>>>>>>> 00d5dd073167675729293ea00b27833d40cea94b
     if(connectionCheck()){
+      calculateSpeed(VRx,VRy);
       bluetoothTransmission();
+      debug();
     }
   }
+<<<<<<< HEAD
   /*
   Serial.print("Current Style = ");
   Serial.println(currentStyle);
@@ -140,29 +156,32 @@ void loop() {
   */
   delay(500);
   
+=======
+>>>>>>> 00d5dd073167675729293ea00b27833d40cea94b
 }
 
-boolean yAchsePos() {
+bool yAchsePos() {
   if (yAchse > Fix+marche) return true;
   else return false;
 }
 
-boolean yAchseNeg() {
+bool yAchseNeg() {
   if (yAchse < Fix-marche) return true;
   else return false;
 }
 
-boolean xAchsePos() {
+bool xAchsePos() {
   if (xAchse > Fix+marche) return true;
   else return false;
 }
 
-boolean xAchseNeg() {
+bool xAchseNeg() {
   if (xAchse < Fix-marche) return true;
   else return false;
 }
 
 //Funktion zur Berechnung der Joystick-Inputdaten und Schreiben der Daten in die Bluetooth Kommunikation
+//
 void calculateSpeed(int xValue, int yValue) {
   Speed = sqrt(sq(xAchse-haelfte)+sq(yAchse-haelfte));
   if (yAchsePos()) {
@@ -228,6 +247,7 @@ void calculateSpeed(int xValue, int yValue) {
 bool connectionCheck(){
   while(!BTconnected)
     {
+<<<<<<< HEAD
       Serial.print("Controller is looking for the robot\n");
       if (digitalRead(BTpin)==HIGH){
         BTconnected = true;
@@ -237,6 +257,16 @@ bool connectionCheck(){
       else{
         return false;
       }  
+=======
+      Serial.println("Controller is looking for the robot");
+      if (digitalRead(BTpin)==HIGH){
+        BTconnected = true;
+        Serial.println("Bluetooth connected");
+        return true;
+      } else {
+        return false;
+      } 
+>>>>>>> 00d5dd073167675729293ea00b27833d40cea94b
     }
   if(digitalRead(BTpin)==LOW){
     BTconnected = false;
@@ -246,6 +276,63 @@ bool connectionCheck(){
 }
 
 void bluetoothTransmission(){
+<<<<<<< HEAD
   Serial.write(motLInt);
   Serial.write(motRInt);
+=======
+  if(motLInt < 35) {
+    buf[0] = 0;
+    buf[1] = static_cast<uint8_t>(-motLInt);
+  } else if (motLInt > 35) {
+    buf[0] = 2;
+    buf[1] = static_cast<uint8_t>(motLInt);
+  } else {
+    buf[0] = 1;
+    buf[1] = 0;
+  }
+
+  if(motRInt < 35) {
+    buf[2] = 0;
+    buf[3] = static_cast<uint8_t>(-motRInt);
+  } else if(motRInt > 35) {
+    buf[2] = 2;
+    buf[3] = static_cast<uint8_t>(motRInt);
+  } else {
+    buf[2] = 1;
+    buf[3] = 0;
+  }
+
+  btSerial.write(buf, 4);
+}
+
+void buttonSwitch() {
+  if(buttonPressed && !digitalRead(SW)) {
+    if(currentStyle == JOYSTICK) {
+      currentStyle == TILT_SENSOR;
+    } else {
+      currentStyle == JOYSTICK;
+    }
+    buttonPressed = false;
+  }
+ 
+  buttonPressed = digitalRead(SW);
+}
+
+void debug() {
+  Serial.print("Current Style = ");
+  Serial.println(currentStyle);
+  Serial.print(buf[0]-1);
+  Serial.print(",");
+  Serial.print(buf[1]);
+  Serial.print(",");
+  Serial.print(buf[2]-1);
+  Serial.print(",");
+  Serial.println(buf[3]);
+  Serial.println();
+  Serial.print("motLInt = ");
+  Serial.println(motLInt);
+  Serial.print("motRInt = ");
+  Serial.println(motRInt);
+  Serial.println();
+>>>>>>> 00d5dd073167675729293ea00b27833d40cea94b
 }
