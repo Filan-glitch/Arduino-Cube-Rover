@@ -13,7 +13,7 @@ enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
 
 //Bluetooth Kommunikation
-SoftwareSerial btSerial(4,5);
+SoftwareSerial btSerial(5,4);
 bool BTconnected;
 const byte BTpin = 3;
 
@@ -21,12 +21,12 @@ const byte BTpin = 3;
 int xAchse;
 int yAchse;
 float Speed;
-float Fix = 519;
+float Fix = 512;
 float haelfte = 512;
 float alpha;
 float motR = 0;
 float motL = 0;
-int marche = 8;
+int marche = 64;
 
 //ControllerIO
 //const int ledPin;
@@ -34,7 +34,7 @@ bool buttonPressed;
 
 //Joystick
 
-const int SW = 2;
+const int SW = 13;
 const int VRx = 7;
 const int VRy = 6;
 
@@ -97,22 +97,20 @@ void setup() {
 
 //Loop-Funktion
 void loop() {  
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 500) {
     buttonSwitch();
     if(currentStyle == JOYSTICK) {
       xAchse = analogRead(VRx);
       yAchse = analogRead(VRy);
     } else {
-      adxl.readXYZ(&junk, &VRx, &junk);
+      adxl.readXYZ(&junk, &xAchse, &junk);
       yAchse = analogRead(VRy);
     }
     if(connectionCheck()){
-      calculateSpeed(VRx,VRy);
+      calculateSpeed();
       bluetoothTransmission();
       debug();
     }
-  }
+    delay(500);
 }
 
 bool yAchsePos() {
@@ -137,7 +135,7 @@ bool xAchseNeg() {
 
 //Funktion zur Berechnung der Joystick-Inputdaten und Schreiben der Daten in die Bluetooth Kommunikation
 //
-void calculateSpeed(int xValue, int yValue) {
+void calculateSpeed() {
   Speed = sqrt(sq(xAchse-haelfte)+sq(yAchse-haelfte));
   if (yAchsePos()) {
     if (xAchsePos()) {
@@ -219,10 +217,10 @@ bool connectionCheck(){
 }
 
 void bluetoothTransmission(){
-  if(motLInt < 35) {
+  if(motLInt < -64) {
     buf[0] = 0;
     buf[1] = static_cast<uint8_t>(-motLInt);
-  } else if (motLInt > 35) {
+  } else if (motLInt > 64) {
     buf[0] = 2;
     buf[1] = static_cast<uint8_t>(motLInt);
   } else {
@@ -230,10 +228,10 @@ void bluetoothTransmission(){
     buf[1] = 0;
   }
 
-  if(motRInt < 35) {
+  if(motRInt < -64) {
     buf[2] = 0;
     buf[3] = static_cast<uint8_t>(-motRInt);
-  } else if(motRInt > 35) {
+  } else if(motRInt > 64) {
     buf[2] = 2;
     buf[3] = static_cast<uint8_t>(motRInt);
   } else {
@@ -272,5 +270,10 @@ void debug() {
   Serial.println(motLInt);
   Serial.print("motRInt = ");
   Serial.println(motRInt);
+  Serial.println();
+  Serial.print("xAchse = ");
+  Serial.println(xAchse - 512);
+  Serial.print("yAchse = ");
+  Serial.println(yAchse - 512);
   Serial.println();
 }

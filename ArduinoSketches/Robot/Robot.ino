@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 #include <string.h>
-#include <MFRC522.h>
-#include <SPI.h>
+//#include <MFRC522.h>
+//#include <SPI.h>
 
 // Gleichstrommotor 1
 
@@ -27,13 +27,13 @@ bool BTconnected;
 const byte BTpin = 3;
 
 //NFC Daten
-const int SS_PIN = ; //muss noch aktualisiert werden
-const int RST_PIN = ; //muss noch aktualisiert werden
-MFRC522 mfrc522(SS_PIN, RST_PIN);
-long forward = 0; //rfid anpassen
-long backward = 0; //...
-long right = 0; //...
-long left = 0; //...
+//const int SS_PIN = ; //muss noch aktualisiert werden
+//const int RST_PIN = ; //muss noch aktualisiert werden
+//MFRC522 mfrc522(SS_PIN, RST_PIN);
+//long forward = 0; //rfid anpassen
+//long backward = 0; //...
+//long right = 0; //...
+//long left = 0; //...
 
 
 
@@ -47,13 +47,13 @@ void setup()
   pinMode(in4, OUTPUT);
   btSerial.begin(38400);
   Serial.begin(38400);
-  SPI.begin(); // SPI-Verbindung aufbauen
-  mfrc522.PCD_Init(); // Initialisierung des RFID-Empfängers
+  //SPI.begin(); // SPI-Verbindung aufbauen
+  //mfrc522.PCD_Init(); // Initialisierung des RFID-Empfängers
 }
 
 void loop()
 {
-  nfcReader();
+  //nfcReader();
   if(connectionCheck() && btSerial.available()) //wenn Daten empfangen werden...      
   {
        //Werte zwischen -255 und 255 für die Geschwindigkeit
@@ -62,16 +62,16 @@ void loop()
    motL = buf[1];
    motR = buf[3];
 
-   engine1(buf[0]-1);
-   engine2(buf[2]-1);
+   engine1(buf[2]-1);
+   engine2(buf[0]-1);
 
-   analogWrite(GSM1, motL);
-   analogWrite(GSM2, motR);
+   analogWrite(GSM1, motR);
+   analogWrite(GSM2, motL);
 
    debug();
   }
 }
-
+/*
 void rfidReader() {
   long code=0;
   // Überprüfen, ob ein NFC-Tag gefunden wurde
@@ -149,7 +149,7 @@ void nfcMove(long code) {
       break;
   }
 }
-
+*/
 bool connectionCheck(){
   while(!BTconnected)
     {
@@ -169,7 +169,7 @@ bool connectionCheck(){
   return true;
 }
 
-void engine1(uint8_t rot) {
+void engine1(int rot) {
   if(rot == 1) {
     digitalWrite(in1, HIGH);  // Motor 1 beginnt zu rotieren
     digitalWrite(in2, LOW);
@@ -182,7 +182,7 @@ void engine1(uint8_t rot) {
   }
 }
 
-void engine2(uint8_t rot) {
+void engine2(int rot) {
   if(rot == 1) {
     digitalWrite(in3, HIGH);  // Motor 2 beginnt zu rotieren
     digitalWrite(in4, LOW);
@@ -196,10 +196,10 @@ void engine2(uint8_t rot) {
 }
 
 void debug() {
-  Serial.print("motL = ");
-  Serial.println(motL);
-  Serial.print("motR = ");
-  Serial.println(motR);
+  //Serial.print("motL = ");
+  //Serial.println(motL);
+  //Serial.print("motR = ");
+  //Serial.println(motR);
   Serial.print(buf[0]-1);
   Serial.print(",");
   Serial.print(buf[1]);
