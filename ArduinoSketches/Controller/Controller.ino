@@ -267,12 +267,14 @@ void loop() {
 
     if(currentStyle == JOYSTICK) {
       xAchse = analogRead(VRx);
-      yAchse = analogRead(VRy);
+      yAchse = analogRead(VRy) + 17;
+
     } else {
       adxl.readXYZ(&xAchse, &junk, &junk);
       xAchse -= 30;
-      map(xAchse, -255, 255, 1024, 0);
-      yAchse = analogRead(VRy);
+      xAchse = int(map(xAchse, -255, 255, 0, 1024));
+      if (xAchse < 576 && xAchse > 448) xAchse = 512;
+      yAchse = analogRead(VRy) + 17;
     }
     if(connectionCheck()){
       calculateSpeed();
