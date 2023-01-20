@@ -267,15 +267,20 @@ void loop() {
 
     if(currentStyle == JOYSTICK) {
       xAchse = analogRead(VRx);
-      yAchse = analogRead(VRy) + 17;
-
     } else {
       adxl.readXYZ(&xAchse, &junk, &junk);
       xAchse -= 30;
       xAchse = int(map(xAchse, -255, 255, 0, 1024));
-      if (xAchse < 576 && xAchse > 448) xAchse = 512;
-      yAchse = analogRead(VRy) + 17;
     }
+    yAchse = analogRead(VRy) + 17;
+
+    //korrekturen
+    if (xAchse < 576 && xAchse > 448) xAchse = 512;
+    if (yAchse < 576 && yAchse > 448) yAchse = 512;
+    if (yAchse > 900) xAchse = 512;
+    if (yAchse < 128) xAchse = 512;
+
+
     if(connectionCheck()){
       calculateSpeed();
       bluetoothTransmission();
