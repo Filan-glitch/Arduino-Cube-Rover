@@ -22,9 +22,9 @@ uint8_t motR;
 uint8_t buf[4];
 
 
-SoftwareSerial btSerial(4,5);
+SoftwareSerial btSerial(3,4);
 bool BTconnected;
-const byte BTpin = 3;
+const byte BTpin = 5;
 
 //NFC Daten
 //const int SS_PIN = ; //muss noch aktualisiert werden
@@ -163,6 +163,10 @@ bool connectionCheck(){
       }
     }
   if(digitalRead(BTpin)==LOW){
+    engine1(0);
+    engine2(0);
+    analogWrite(GSM1, 0);
+    analogWrite(GSM2, 0);
     BTconnected = false;
     return false;
   }

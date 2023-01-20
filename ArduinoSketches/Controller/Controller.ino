@@ -7,6 +7,7 @@ int junk;
 int motRInt;
 int motLInt;
 uint8_t buf[4];
+unsigned long timer = 500;
 unsigned long previousMillis = 0;
 
 enum controlStyle {JOYSTICK, TILT_SENSOR};
@@ -34,7 +35,7 @@ bool buttonPressed;
 
 //Joystick
 
-const int SW = 13;
+const int SW = 2;
 const int VRx = 7;
 const int VRy = 6;
 
@@ -43,7 +44,7 @@ ADXL345 adxl;
 
 //Setup-Funktion
 void setup() {
-  pinMode(SW, INPUT);
+  pinMode(SW, INPUT_PULLUP);
   //pinMode(ledPin, OUTPUT);
   btSerial.begin(38400);
   Serial.begin(38400);
@@ -93,24 +94,6 @@ void setup() {
   adxl.setInterrupt( ADXL345_INT_FREE_FALL_BIT,  1);
   adxl.setInterrupt( ADXL345_INT_ACTIVITY_BIT,   1);
   adxl.setInterrupt( ADXL345_INT_INACTIVITY_BIT, 1);
-}
-
-//Loop-Funktion
-void loop() {  
-    buttonSwitch();
-    if(currentStyle == JOYSTICK) {
-      xAchse = analogRead(VRx);
-      yAchse = analogRead(VRy);
-    } else {
-      adxl.readXYZ(&junk, &xAchse, &junk);
-      yAchse = analogRead(VRy);
-    }
-    if(connectionCheck()){
-      calculateSpeed();
-      bluetoothTransmission();
-      debug();
-    }
-    delay(500);
 }
 
 bool yAchsePos() {
@@ -200,20 +183,21 @@ void calculateSpeed() {
 bool connectionCheck(){
   while(!BTconnected)
     {
-      Serial.println("Controller is looking for the robot");
+      Serial.print("Controller is looking for the robot\n");
       if (digitalRead(BTpin)==HIGH){
         BTconnected = true;
-        Serial.println("Bluetooth connected");
+        Serial.print("Bluetooth connected\n");
         return true;
-      } else {
-        return false;
       } 
-    }
+      else{
+        return false;
+      }   
   if(digitalRead(BTpin)==LOW){
     BTconnected = false;
     return false;
   }
   return true;
+  }
 }
 
 void bluetoothTransmission(){
@@ -238,16 +222,15 @@ void bluetoothTransmission(){
     buf[2] = 1;
     buf[3] = 0;
   }
-
   btSerial.write(buf, 4);
 }
 
 void buttonSwitch() {
-  if(buttonPressed && !digitalRead(SW)) {
+  if(buttonPressed && digitalRead(SW) == LOW) {
     if(currentStyle == JOYSTICK) {
-      currentStyle == TILT_SENSOR;
+      currentStyle = TILT_SENSOR;
     } else {
-      currentStyle == JOYSTICK;
+      currentStyle = JOYSTICK;
     }
     buttonPressed = false;
   }
@@ -276,4 +259,26 @@ void debug() {
   Serial.print("yAchse = ");
   Serial.println(yAchse - 512);
   Serial.println();
+}
+
+//Loop-Funktion
+void loop() {  
+    buttonSwitch();
+
+    if(currentStyle == JOYSTICK) {
+      xAchse = analogRead(VRx);
+      yAchse = analogRead(VRy);
+    } else {
+      adxl.readXYZ(&xAchse, &junk, &junk);
+      xAchse -= 30;
+      map(xAchse, -255, 255, 1024, 0);
+      yAchse = analogRead(VRy);
+    }
+    if(connectionCheck()){
+      calculateSpeed();
+      bluetoothTransmission();
+      debug();
+    }
+  delay(100);
+  
 }
