@@ -123,10 +123,8 @@ void calculateSpeed() {
 bool connectionCheck(){
   while(!BTconnected)
     {
-      Serial.print("Controller is looking for the robot\n");
       if (digitalRead(BTpin)==HIGH){
         BTconnected = true;
-        Serial.print("Bluetooth connected\n");
         return true;
       } 
       else{
@@ -177,27 +175,27 @@ void buttonSwitch() {
   buttonPressed = digitalRead(SW);
 }
 
-void loop() {  
-    buttonSwitch();
-
-    if(currentStyle == JOYSTICK) {
+void readData() {
+  buttonSwitch();
+  if(currentStyle == JOYSTICK) {
       xAchse = analogRead(VRx);
     } else {
       adxl.readXYZ(&xAchse, &junk, &junk);
-      xAchse -= 30;
-      xAchse = int(map(xAchse, -255, 255, 0, 1024));
+      xAchse = int(map(xAchse, -256, 255, 0, 1023));
     }
-    yAchse = analogRead(VRy) + 17;
+    yAchse = analogRead(VRy);
 
     if (xAchse < 576 && xAchse > 448) xAchse = 512;
     if (yAchse < 576 && yAchse > 448) yAchse = 512;
     if (yAchse > 900) xAchse = 512;
     if (yAchse < 128) xAchse = 512;
+}
 
-
-    if(connectionCheck()){
-      calculateSpeed();
-      bluetoothTransmission();
-    }
+void loop() {  
+  if(connectionCheck()){
+    readData();
+    calculateSpeed();
+    bluetoothTransmission();
+  }
   delay(100);
 }

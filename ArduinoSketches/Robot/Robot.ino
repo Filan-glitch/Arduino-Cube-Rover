@@ -49,13 +49,9 @@ void loop()
 bool connectionCheck(){
   while(!BTconnected)
     {
-      Serial.print("Robot is looking for the controller\n");
       if (digitalRead(BTpin)==HIGH){
         BTconnected = true;
-        Serial.print("Bluetooth connected\n");
         return true;
-      } else {
-        return false; 
       }
     }
     
