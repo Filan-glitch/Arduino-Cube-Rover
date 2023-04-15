@@ -7,11 +7,9 @@ int junk;
 int motRInt;
 int motLInt;
 uint8_t buf[4];
-unsigned long timer = 500;
-unsigned long previousMillis = 0;
-
 enum controlStyle {JOYSTICK, TILT_SENSOR};
 controlStyle currentStyle = JOYSTICK;
+ADXL345 adxl;
 
 //Bluetooth Kommunikation
 SoftwareSerial btSerial(5,4);
@@ -29,97 +27,41 @@ float motR = 0;
 float motL = 0;
 int marche = 64;
 
-//ControllerIO
-//const int ledPin;
-bool buttonPressed;
-
 //Joystick
-
 const int SW = 2;
 const int VRx = 7;
 const int VRy = 6;
+bool buttonPressed;
 
-//Neigungssensor
-ADXL345 adxl;
-
-//Setup-Funktion
 void setup() {
   pinMode(SW, INPUT_PULLUP);
-  //pinMode(ledPin, OUTPUT);
   btSerial.begin(38400);
   Serial.begin(38400);
   adxl.powerOn();
-
-  //set activity/ inactivity thresholds (0-255)
-  adxl.setActivityThreshold(75); //62.5mg per increment
-  adxl.setInactivityThreshold(75); //62.5mg per increment
-  adxl.setTimeInactivity(10); // how many seconds of no activity is inactive?
- 
-  //look of activity movement on this axes - 1 == on; 0 == off 
-  adxl.setActivityX(1);
-  adxl.setActivityY(1);
-  adxl.setActivityZ(1);
- 
-  //look of inactivity movement on this axes - 1 == on; 0 == off
-  adxl.setInactivityX(1);
-  adxl.setInactivityY(1);
-  adxl.setInactivityZ(1);
- 
-  //look of tap movement on this axes - 1 == on; 0 == off
-  adxl.setTapDetectionOnX(0);
-  adxl.setTapDetectionOnY(0);
-  adxl.setTapDetectionOnZ(1);
- 
-  //set values for what is a tap, and what is a double tap (0-255)
-  adxl.setTapThreshold(50); //62.5mg per increment
-  adxl.setTapDuration(15); //625us per increment
-  adxl.setDoubleTapLatency(80); //1.25ms per increment
-  adxl.setDoubleTapWindow(200); //1.25ms per increment
- 
-  //set values for what is considered freefall (0-255)
-  adxl.setFreeFallThreshold(7); //(5 - 9) recommended - 62.5mg per increment
-  adxl.setFreeFallDuration(45); //(20 - 70) recommended - 5ms per increment
- 
-  //setting all interrupts to take place on int pin 1
-  //I had issues with int pin 2, was unable to reset it
-  adxl.setInterruptMapping( ADXL345_INT_SINGLE_TAP_BIT,   ADXL345_INT1_PIN );
-  adxl.setInterruptMapping( ADXL345_INT_DOUBLE_TAP_BIT,   ADXL345_INT1_PIN );
-  adxl.setInterruptMapping( ADXL345_INT_FREE_FALL_BIT,    ADXL345_INT1_PIN );
-  adxl.setInterruptMapping( ADXL345_INT_ACTIVITY_BIT,     ADXL345_INT1_PIN );
-  adxl.setInterruptMapping( ADXL345_INT_INACTIVITY_BIT,   ADXL345_INT1_PIN );
- 
-  //register interrupt actions - 1 == on; 0 == off  
-  adxl.setInterrupt( ADXL345_INT_SINGLE_TAP_BIT, 1);
-  adxl.setInterrupt( ADXL345_INT_DOUBLE_TAP_BIT, 1);
-  adxl.setInterrupt( ADXL345_INT_FREE_FALL_BIT,  1);
-  adxl.setInterrupt( ADXL345_INT_ACTIVITY_BIT,   1);
-  adxl.setInterrupt( ADXL345_INT_INACTIVITY_BIT, 1);
 }
 
 bool yAchsePos() {
-  if (yAchse > Fix+marche) return true;
+  if (yAchse > Fix + marche) return true;
   else return false;
 }
 
 bool yAchseNeg() {
-  if (yAchse < Fix-marche) return true;
+  if (yAchse < Fix - marche) return true;
   else return false;
 }
 
 bool xAchsePos() {
-  if (xAchse > Fix+marche) return true;
+  if (xAchse > Fix + marche) return true;
   else return false;
 }
 
 bool xAchseNeg() {
-  if (xAchse < Fix-marche) return true;
+  if (xAchse < Fix - marche) return true;
   else return false;
 }
 
-//Funktion zur Berechnung der Joystick-Inputdaten und Schreiben der Daten in die Bluetooth Kommunikation
-//
 void calculateSpeed() {
-  Speed = sqrt(sq(xAchse-haelfte)+sq(yAchse-haelfte));
+  Speed = sqrt(sq(xAchse - haelfte) + sq(yAchse - haelfte));
   if (yAchsePos()) {
     if (xAchsePos()) {
       motR = -1;
@@ -151,19 +93,19 @@ void calculateSpeed() {
     else {
       motR = 1;
       motL = 1;
-      Speed = sqrt(sq(yAchse-haelfte));
+      Speed = sqrt(sq(yAchse - haelfte));
     }
   }
   else {
     if (xAchsePos()) {
       motL = 1;
       motR = -1;
-      Speed = xAchse-haelfte;
+      Speed = xAchse - haelfte;
     }
     else if (xAchseNeg()) {
       motL = -1;
       motR = 1;
-      Speed = sqrt(sq(xAchse-haelfte));
+      Speed = sqrt(sq(xAchse - haelfte));
     }
     else {
       motL = 0;
@@ -176,8 +118,6 @@ void calculateSpeed() {
   motL *= Speed;
   motLInt = int(map(motL, -512, 512, -255, 255));
   motRInt = int(map(motR, -512, 512, -255, 255));
-
-  
 }
 
 bool connectionCheck(){
@@ -234,34 +174,9 @@ void buttonSwitch() {
     }
     buttonPressed = false;
   }
- 
   buttonPressed = digitalRead(SW);
 }
 
-void debug() {
-  Serial.print("Current Style = ");
-  Serial.println(currentStyle);
-  Serial.print(buf[0]-1);
-  Serial.print(",");
-  Serial.print(buf[1]);
-  Serial.print(",");
-  Serial.print(buf[2]-1);
-  Serial.print(",");
-  Serial.println(buf[3]);
-  Serial.println();
-  Serial.print("motLInt = ");
-  Serial.println(motLInt);
-  Serial.print("motRInt = ");
-  Serial.println(motRInt);
-  Serial.println();
-  Serial.print("xAchse = ");
-  Serial.println(xAchse - 512);
-  Serial.print("yAchse = ");
-  Serial.println(yAchse - 512);
-  Serial.println();
-}
-
-//Loop-Funktion
 void loop() {  
     buttonSwitch();
 
@@ -274,7 +189,6 @@ void loop() {
     }
     yAchse = analogRead(VRy) + 17;
 
-    //korrekturen
     if (xAchse < 576 && xAchse > 448) xAchse = 512;
     if (yAchse < 576 && yAchse > 448) yAchse = 512;
     if (yAchse > 900) xAchse = 512;
@@ -284,8 +198,6 @@ void loop() {
     if(connectionCheck()){
       calculateSpeed();
       bluetoothTransmission();
-      debug();
     }
   delay(100);
-  
 }
